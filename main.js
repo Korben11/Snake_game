@@ -3,10 +3,6 @@
     TODO: PATH FINDING
 */
 
-function initCanvas() {
-    main();
-}
-
 //Constants
 var COLS = 26,
     ROWS = 26,
@@ -33,12 +29,15 @@ var Y_LEFT = 65,
     Y_RIGHT = 68,
     Y_DOWN = 83;
 
+// var grid = new PF.Grid(COLS, ROWS);
+
 var grid = {
     width: null,
     height: null,
     _grid: null,
 
     init: function (gridValue, width, height) {
+        "use strict";
         this.width = width;
         this.height = height;
 
@@ -59,31 +58,22 @@ var grid = {
     }
 }
 
-var snake = {
-    direction: null,
-    last: null,
-    _queue: null,
+function Snake(direction, x, y) {
+    this.direction = direction,
+        this.last = null,
+        this._queue = [],
 
-    init: function (direction, x, y) {
-        this.direction = direction;
+        this.insert = function (x, y) {
+            this._queue.unshift({
+                x: x,
+                y: y
+            });
+            this.last = this._queue[0];
+        },
 
-        this._queue = [];
-        this.insert(x, y);
-        this.insert(x, y);
-        this.insert(x, y);
-    },
-
-    insert: function (x, y) {
-        this._queue.unshift({
-            x: x,
-            y: y
-        });
-        this.last = this._queue[0];
-    },
-
-    remove: function () {
-        return this._queue.pop();
-    }
+        this.remove = function () {
+            return this._queue.pop();
+        }
 }
 
 function setFood(fruit) {
@@ -104,7 +94,7 @@ function setFood(fruit) {
 }
 
 // Game objects
-var canvas, ctx, keyState, frames, score, bonusFruit; // ctx = context
+var canvas, ctx, keyState, frames, score, bonusFruit, snake; // ctx = context
 
 function main() {
     canvas = document.createElement("canvas");
@@ -129,6 +119,11 @@ function main() {
     loop();
 }
 
+function initCanvas() {
+    "use strict";
+    main();
+}
+
 function init() {
     score = 0;
 
@@ -140,7 +135,10 @@ function init() {
         x: Math.floor(COLS / 4),
         y: ROWS - 1
     };
-    snake.init(UP, snakeStartPoint.x, snakeStartPoint.y);
+    snake = new Snake(UP, snakeStartPoint.x, snakeStartPoint.y);
+    snake.insert(snakeStartPoint.x, snakeStartPoint.y);
+    snake.insert(snakeStartPoint.x, snakeStartPoint.y);
+    snake.insert(snakeStartPoint.x, snakeStartPoint.y);
     grid.set(SNAKE, snakeStartPoint.x, snakeStartPoint.y);
 
     setFood(FRUIT);
@@ -256,5 +254,3 @@ function draw() {
     ctx.fillStyle = "#0ff";
     ctx.fillText("Score: " + score, 10, canvas.height - 10);
 }
-
-//main();

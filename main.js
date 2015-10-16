@@ -58,12 +58,21 @@ var grid = {
     }
 }
 
-function Snake(direction, x, y) {
+function Snake(direction) {
     this.direction = direction,
         this.last = null,
         this._queue = [],
 
-        this.insert = function (x, y) {
+        this.init = function (x, y) {
+            for (var i = 0; i < 3; i++)
+                this._queue.unshift({
+                    x: x,
+                    y: y
+                });
+            this.last = this._queue[0];
+        }
+
+    this.insert = function (x, y) {
             this._queue.unshift({
                 x: x,
                 y: y
@@ -94,7 +103,7 @@ function setFood(fruit) {
 }
 
 // Game objects
-var canvas, ctx, keyState, frames, score, bonusFruit, snake; // ctx = context
+var canvas, ctx, keyState, frames, score, bonusFruit, snake, AISnake; // ctx = context
 
 function main() {
     canvas = document.createElement("canvas");
@@ -135,10 +144,8 @@ function init() {
         x: Math.floor(COLS / 4),
         y: ROWS - 1
     };
-    snake = new Snake(UP, snakeStartPoint.x, snakeStartPoint.y);
-    snake.insert(snakeStartPoint.x, snakeStartPoint.y);
-    snake.insert(snakeStartPoint.x, snakeStartPoint.y);
-    snake.insert(snakeStartPoint.x, snakeStartPoint.y);
+    snake = new Snake(UP);
+    snake.init(snakeStartPoint.x, snakeStartPoint.y);
     grid.set(SNAKE, snakeStartPoint.x, snakeStartPoint.y);
 
     setFood(FRUIT);
@@ -158,6 +165,8 @@ function update() {
     if (keyState[KEY_UP] && snake.direction !== DOWN) snake.direction = UP;
     if (keyState[KEY_RIGHT] && snake.direction !== LEFT) snake.direction = RIGHT;
     if (keyState[KEY_DOWN] && snake.direction !== UP) snake.direction = DOWN;
+
+
 
 
     if (frames % SPEED === 0) {

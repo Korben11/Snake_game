@@ -83,6 +83,74 @@ function Snake(direction) {
         this.remove = function () {
             return this._queue.pop();
         }
+
+    this.setDirection = function (keyLeft, keyUp, keyRight, keyDown) {
+        if (keyState[keyLeft] && this.direction !== RIGHT) this.direction = LEFT;
+        if (keyState[keyUp] && this.direction !== DOWN) this.direction = UP;
+        if (keyState[keyRight] && this.direction !== LEFT) this.direction = RIGHT;
+        if (keyState[keyDown] && this.direction !== UP) this.direction = DOWN;
+    }
+
+    this.move = function () {
+        if (frames % SPEED === 0) {
+            var nx = this.last.x;
+            var ny = this.last.y;
+
+            switch (this.direction) {
+            case LEFT:
+                nx--;
+                break;
+            case UP:
+                ny--;
+                break;
+            case RIGHT:
+                nx++;
+                break;
+            case DOWN:
+                ny++;
+                break;
+            }
+
+            // went out of map teleport on other side
+            if (0 > ny) // went out from top
+                ny = grid.height - 1; // teleport to the bottom
+            else if (ny > grid.height - 1) // wetn out from bottom
+                ny = 0; // teleport to the top
+            else if (0 > nx)
+                nx = grid.width - 1;
+            else if (nx > grid.width - 1)
+                nx = 0;
+
+            // collision with snake
+            if (grid.get(nx, ny) === SNAKE) {
+                return init();
+            }
+
+            if (grid.get(nx, ny) === BONUS_FRUIT) {
+                var tail = {
+                    x: nx,
+                    y: ny
+                };
+                score += 3;
+            } else if (grid.get(nx, ny) === FRUIT) {
+                var tail = {
+                    x: nx,
+                    y: ny
+                };
+                score++;
+                setFood(FRUIT);
+            } else {
+                var tail = this.remove();
+                grid.set(EMPTY, tail.x, tail.y);
+                tail.x = nx;
+                tail.y = ny;
+            }
+
+            grid.set(SNAKE, tail.x, tail.y);
+
+            this.insert(tail.x, tail.y);
+        }
+    }
 }
 
 function setFood(fruit) {
@@ -148,6 +216,10 @@ function init() {
     snake.init(snakeStartPoint.x, snakeStartPoint.y);
     grid.set(SNAKE, snakeStartPoint.x, snakeStartPoint.y);
 
+    AISnake = new Snake(UP);
+    AISnake.init((snakeStartPoint.x) * 3, snakeStartPoint.y);
+    grid.set(SNAKE, (snakeStartPoint.x) * 3, snakeStartPoint.y);
+
     setFood(FRUIT);
 }
 
@@ -161,72 +233,10 @@ function loop() {
 function update() {
     frames++;
 
-    if (keyState[KEY_LEFT] && snake.direction !== RIGHT) snake.direction = LEFT;
-    if (keyState[KEY_UP] && snake.direction !== DOWN) snake.direction = UP;
-    if (keyState[KEY_RIGHT] && snake.direction !== LEFT) snake.direction = RIGHT;
-    if (keyState[KEY_DOWN] && snake.direction !== UP) snake.direction = DOWN;
-
-
-
-
-    if (frames % SPEED === 0) {
-        var nx = snake.last.x;
-        var ny = snake.last.y;
-
-        switch (snake.direction) {
-        case LEFT:
-            nx--;
-            break;
-        case UP:
-            ny--;
-            break;
-        case RIGHT:
-            nx++;
-            break;
-        case DOWN:
-            ny++;
-            break;
-        }
-
-        // went out of map teleport on other side
-        if (0 > ny) // went out from top
-            ny = grid.height - 1; // teleport to the bottom
-        else if (ny > grid.height - 1) // wetn out from bottom
-            ny = 0; // teleport to the top
-        else if (0 > nx)
-            nx = grid.width - 1;
-        else if (nx > grid.width - 1)
-            nx = 0;
-
-        // collision with snake
-        if (grid.get(nx, ny) === SNAKE) {
-            return init();
-        }
-
-        if (grid.get(nx, ny) === BONUS_FRUIT) {
-            var tail = {
-                x: nx,
-                y: ny
-            };
-            score += 3;
-        } else if (grid.get(nx, ny) === FRUIT) {
-            var tail = {
-                x: nx,
-                y: ny
-            };
-            score++;
-            setFood(FRUIT);
-        } else {
-            var tail = snake.remove();
-            grid.set(EMPTY, tail.x, tail.y);
-            tail.x = nx;
-            tail.y = ny;
-        }
-
-        grid.set(SNAKE, tail.x, tail.y);
-
-        snake.insert(tail.x, tail.y);
-    }
+    snake.setDirection(KEY_LEFT, KEY_UP, KEY_RIGHT, KEY_DOWN);
+    AISnake.setDirection(Y_LEFT, Y_UP, Y_RIGHT, Y_DOWN);
+    snake.move();
+    AISnake.move();
 
     if (frames % BONUS_FRUIT_FREQUENCY === 0) {
         if (grid.get(bonusFruit.x, bonusFruit.y) === BONUS_FRUIT)
